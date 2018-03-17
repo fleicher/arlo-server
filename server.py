@@ -9,15 +9,11 @@ import email
 import time
 import re
 import os
-from selenium import webdriver
-from selenium.common.exceptions import WebDriverException, NoSuchElementException
 import requests
 import shutil
 import cv2
 import numpy as np
 import detect
-import matplotlib.pyplot as plt
-import base64
 # whole package is copied as no external packages can be installed on pythonanywhere
 try:
     from my_oauth2client.service_account import ServiceAccountCredentials
@@ -112,29 +108,35 @@ def getVideo(url, out_dir="videos"):
     :param out_dir: directory the video will be stored in (is created if doesn't exist yet)
     :return: None if video couldn't be retrieved, else: Dict: {"path": local path, "url": remote url, "name": camera name, "date": date as string}
     """
+    from selenium import webdriver
+    from selenium.common.exceptions import WebDriverException, NoSuchElementException
+    from pyvirtualdisplay import Display
+
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     out_path = os.path.join(out_dir, os.path.basename(url) + ".mp4")
-    try:
-        driver = webdriver.Firefox()
-    except WebDriverException:
-        driver = webdriver.Chrome()
-    try:
-        driver.get(url)
-        video_elem = driver.find_element_by_id("recordedVideo")
-        source_elem = video_elem.find_element_by_tag_name("source")
-        video_url = source_elem.get_attribute("src")
+    with Display():
+        # create virtual display so that selenium can run in terminal
+        try:
+            driver = webdriver.Firefox()
+        except WebDriverException:
+            driver = webdriver.Chrome()
+        try:
+            driver.get(url)
+            video_elem = driver.find_element_by_id("recordedVideo")
+            source_elem = video_elem.find_element_by_tag_name("source")
+            video_url = source_elem.get_attribute("src")
 
-        side_elem = driver.find_element_by_class_name("shared-media-head")
-        div0, div1 = side_elem.find_elements_by_tag_name("div")
-        camera_name = div0.get_attribute("innerHTML")
-        date = div1.get_attribute("innerHTML")
+            side_elem = driver.find_element_by_class_name("shared-media-head")
+            div0, div1 = side_elem.find_elements_by_tag_name("div")
+            camera_name = div0.get_attribute("innerHTML")
+            date = div1.get_attribute("innerHTML")
 
-    except NoSuchElementException:
+        except NoSuchElementException:
+            driver.close()
+            return None
+        print("saving video from", video_url, "at", out_path)
         driver.close()
-        return None
-    print("saving video from", video_url, "at", out_path)
-    driver.close()
     req = requests.get(video_url, stream=True)
     with open(out_path, "wb") as f:
         assert req.status_code == 200
@@ -206,8 +208,16 @@ def notify_client(video_info, suspicious_frame):
         "Content-Type": "application/json",
         "Authorization": "Bearer " + _get_access_token()
     }
+    from matplotlib.pyplot import imsave
+    # import base64
+
     # frame_small = suspicious_frame[::15, ::15]
-    # plt.imsave("temp.jpg", frame_small)
+    imsave("last.jpg", suspicious_frame)
+    with open("name.txt", "wb") as f:
+        f.write(video_info["name"] + " " + video_info["date"])
+    with open("url.txt", "wb") as f:
+        f.write(video_info["url"])
+
     # with open("temp.jpg", "rb") as f:
     #     frame_base64 = base64.b64encode(f.read()).decode('ascii')
     #
@@ -220,7 +230,8 @@ def notify_client(video_info, suspicious_frame):
             "data": {
                 "url": video_info["url"],
                 "name": video_info["name"],
-                "date": video_info["date"]
+                "date": video_info["date"],
+                "image": "https://wiesmann.codiferes.net/share/bitmaps/test_pattern.jpg"
             }
         }
     }
