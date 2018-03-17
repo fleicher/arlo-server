@@ -135,10 +135,10 @@ def getVideo(url, out_dir="videos"):
             date = div1.get_attribute("innerHTML")
 
         except NoSuchElementException:
-            driver.close()
+            driver.quit()
             return None
         print("saving video from", video_url, "at", out_path)
-        driver.close()
+        driver.quit()
     req = requests.get(video_url, stream=True)
     with open(out_path, "wb") as f:
         assert req.status_code == 200
@@ -211,14 +211,23 @@ def notify_client(video_info, suspicious_frame):
         "Authorization": "Bearer " + _get_access_token()
     }
     from matplotlib.pyplot import imsave
+
+    import pyimgur
+
+    import cloudinary.uploader
+    import cloudinary
     # import base64
 
     # frame_small = suspicious_frame[::15, ::15]
     imsave("last.jpg", suspicious_frame)
-    with open("name.txt", "w") as f:
-        f.write(video_info["name"] + " " + video_info["date"])
-    with open("url.txt", "w") as f:
-        f.write(video_info["url"])
+    response = cloudinary.uploader.unsigned_upload("last.jpg", "upload_identifier1",
+            cloud_name="arlo")
+
+
+    # with open("name.txt", "w") as f:
+    #     f.write(video_info["name"] + " " + video_info["date"])
+    # with open("url.txt", "w") as f:
+    #     f.write(video_info["url"])
 
     # with open("temp.jpg", "rb") as f:
     #     frame_base64 = base64.b64encode(f.read()).decode('ascii')
@@ -233,7 +242,7 @@ def notify_client(video_info, suspicious_frame):
                 "url": video_info["url"],
                 "name": video_info["name"],
                 "date": video_info["date"],
-                "image": "https://wiesmann.codiferes.net/share/bitmaps/test_pattern.jpg"
+                "image": response["url"]
             }
         }
     }
