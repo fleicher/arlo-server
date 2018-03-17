@@ -123,6 +123,8 @@ def getVideo(url, out_dir="videos"):
             driver = webdriver.Chrome()
         try:
             driver.get(url)
+            with open("source.txt", "w") as f:
+                f.write(driver.page_source)
             video_elem = driver.find_element_by_id("recordedVideo")
             source_elem = video_elem.find_element_by_tag_name("source")
             video_url = source_elem.get_attribute("src")
@@ -213,9 +215,9 @@ def notify_client(video_info, suspicious_frame):
 
     # frame_small = suspicious_frame[::15, ::15]
     imsave("last.jpg", suspicious_frame)
-    with open("name.txt", "wb") as f:
+    with open("name.txt", "w") as f:
         f.write(video_info["name"] + " " + video_info["date"])
-    with open("url.txt", "wb") as f:
+    with open("url.txt", "w") as f:
         f.write(video_info["url"])
 
     # with open("temp.jpg", "rb") as f:
