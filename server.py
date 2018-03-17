@@ -33,6 +33,59 @@ SERVICE_ACCOUNT_JSON = "my_service_account.json"
 PROJECT_ID = "quickstart-android-419d5"
 
 
+def main2():
+    from Arlo import Arlo
+    from datetime import timedelta, date
+    import datetime
+    parser = argparse.ArgumentParser()
+    parser.add_argument("user", help="username")
+    parser.add_argument("pw")
+    parser.add_argument("--interval", help="timeinterval in seconds between email server is checked", default=5)
+    parser.add_argument("--threshold", help="threshold when a change of a pixel grey value is consided a 'change'",
+                        default=20)
+    parser.add_argument("--verbose", help="give more output", action="store_true")
+    args = parser.parse_args()
+    arlo = Arlo(args.user, args.pw)
+    known_ids = []
+    while True:
+        start = time.time()
+        today = date.today().strftime("%Y%m%d")
+        yesterday = (date.today()-timedelta(days=7)).strftime("%Y%m%d")
+        library = arlo.GetLibrary(yesterday, today)
+        print("library request took:", time.time()-start)
+
+        for recording in library:
+            id = recording['uniqueId']
+            if id in known_ids:
+                continue
+            if len(known_ids) > 100:
+                known_ids.pop(0)
+            known_ids.append(recording['uniqueId'])
+
+            stream = arlo.StreamRecording(recording['presignedContentUrl'])
+            path = 'videos/' + id + ".mp4"
+            with open(path, 'wb') as f:
+                for chunk in stream:
+                    f.write(chunk)
+                f.close()
+
+            print('Downloaded', path)
+
+            frames = getFrames(path)
+            os.remove(path)
+            # suspicious = detect.getSuspiciousFrames(frames, args.threshold, gui=True)
+            suspicious = detect.hogDetector(frames, gui=True)
+
+            if suspicious:
+                video_info = {"path": path, "url": recording['presignedContentUrl'],
+                              "name": "cam", "date": str(recording['createdDate'])}
+                if args.verbose:
+                    print("Frames", suspicious, "are suspicious")
+                status, txt = notify_client(video_info, frames[suspicious[0]])
+                assert status == 200, "couldn't transmit picture. Error: " + str(txt)
+        time.sleep(10)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("email", help="(G)mail account the Arlo notifications are sent to")
@@ -252,4 +305,4 @@ def notify_client(video_info, suspicious_frame):
 
 
 if __name__ == "__main__":
-    main()
+    main2()
