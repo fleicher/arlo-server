@@ -272,8 +272,8 @@ def notify_client(video_info, suspicious_frame):
 
     # frame_small = suspicious_frame[::15, ::15]
     imsave("last.jpg", suspicious_frame)
-    response = cloudinary.uploader.unsigned_upload("last.jpg", "upload_identifier1",
-            cloud_name="arlo")
+    # response = cloudinary.uploader.unsigned_upload("last.jpg", "upload_identifier1",
+    #         cloud_name="arlo")
 
 
     # with open("name.txt", "w") as f:
@@ -294,7 +294,7 @@ def notify_client(video_info, suspicious_frame):
                 "url": video_info["url"],
                 "name": video_info["name"],
                 "date": video_info["date"],
-                "image": response["url"]
+                "image": "http://leicher.pythonanywhere.com/last.jpg"
             }
         }
     }
