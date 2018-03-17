@@ -123,8 +123,8 @@ def getVideo(url, out_dir="videos"):
             driver = webdriver.Chrome()
         try:
             driver.get(url)
-            with open("source.txt", "w") as f:
-                f.write(driver.page_source)
+            with open("source.txt", "wb") as f:
+                f.write(driver.page_source.encode("utf-8"))
             video_elem = driver.find_element_by_id("recordedVideo")
             source_elem = video_elem.find_element_by_tag_name("source")
             video_url = source_elem.get_attribute("src")
