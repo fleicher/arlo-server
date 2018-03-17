@@ -36,7 +36,6 @@ PROJECT_ID = "quickstart-android-419d5"
 def main2():
     from Arlo import Arlo
     from datetime import timedelta, date
-    import datetime
     parser = argparse.ArgumentParser()
     parser.add_argument("user", help="username")
     parser.add_argument("pw")
