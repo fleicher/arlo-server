@@ -267,11 +267,11 @@ def notify_client(video_info, suspicious_frame):
         "Authorization": "Bearer " + _get_access_token()
     }
     from matplotlib.pyplot import imsave
-
-    import pyimgur
-
-    import cloudinary.uploader
-    import cloudinary
+    #
+    # import pyimgur
+    #
+    # import cloudinary.uploader
+    # import cloudinary
     # import base64
 
     # frame_small = suspicious_frame[::15, ::15]
