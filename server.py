@@ -146,7 +146,10 @@ def notify_client(video_info, suspicious_frame, server_url=None):
     cv2.imwrite(impath, suspicious_frame)
 
     if server_url:
-        video_info["image"] = server_url + "/" + imdir + "/" + imname
+        assert server_url[:4] == "http", "provided server url must include protocol"
+        if server_url[-1] != "/":
+            server_url += "/"
+        video_info["image"] = server_url  + imdir + "/" + imname
     else:
         import cloudinary.uploader
         import cloudinary
