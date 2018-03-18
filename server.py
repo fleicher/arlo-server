@@ -36,22 +36,22 @@ def main():
     while True:
         start = time.time()
         today = date.today().strftime("%Y%m%d")
-        yesterday = (date.today()-timedelta(days=7)).strftime("%Y%m%d")
+        yesterday = (date.today()-timedelta(days=1)).strftime("%Y%m%d")
         try:
             library = arlo.GetLibrary(yesterday, today)
         except requests.exceptions.HTTPError:
             print("somebody else logged in, stopping camera for 5 min")
             time.sleep(300)
             continue
-        print("library request took:", time.time()-start)
+        print("library request took:", time.time()-start, "has:", len(library))
 
         for recording in library:
-            id = recording['uniqueId']
+            id = recording['localCreatedDate']
             if id in known_ids:
                 continue
             if len(known_ids) > 100:
                 known_ids.pop(0)
-            known_ids.append(recording['uniqueId'])
+            known_ids.append(id)
 
             stream = arlo.StreamRecording(recording['presignedContentUrl'])
             path = 'videos/' + id + ".mp4"
