@@ -60,15 +60,16 @@ def main():
                     f.write(chunk)
                 f.close()
 
-            print('Downloaded', path)
+            print('Downloaded', path, "from Device", recording["deviceId"])
 
             frames = getFrames(path)
             os.remove(path)
-            suspicious_frame = detect.hogDetector(frames, gui=True)
-
+            suspicious_frame = detect.hogDetector(frames)
+            names = {"48B45972DBDBD": "Freisitz", "48B45A7BEAE01": "Eingang", "48B45975D51D8": "Rücksitz",
+                "48B45A75EC0D3": "Pool", "48B45A7MEA79E": "Terasse"}
             if suspicious_frame is not None:
                 video_info = {"path": path, "url": recording['presignedContentUrl'],
-                              "name": "cam", "date": str(recording['createdDate'])}
+                              "name": names[recording["deviceId"]], "date": str(recording['createdDate'])}
                 status, txt = notify_client(video_info, suspicious_frame, args.server)
                 assert status == 200, "couldn't transmit picture. Error: " + str(txt)
         time.sleep(10)

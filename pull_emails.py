@@ -82,49 +82,49 @@ def main():
         if args.verbose:
             print("Check again in", args.interval, "seconds")
 
-    def getVideo(url, out_dir="videos"):
-        """ use controlled browser to navigate to url provided in notification email and get real video url
+def getVideo(url, out_dir="videos"):
+    """ use controlled browser to navigate to url provided in notification email and get real video url
 
-        :param url: url provided in email
-        :param out_dir: directory the video will be stored in (is created if doesn't exist yet)
-        :return: None if video couldn't be retrieved, else: Dict: {"path": local path, "url": remote url, "name": camera name, "date": date as string}
-        """
-        from selenium import webdriver
-        from selenium.common.exceptions import WebDriverException, NoSuchElementException
-        from pyvirtualdisplay import Display
+    :param url: url provided in email
+    :param out_dir: directory the video will be stored in (is created if doesn't exist yet)
+    :return: None if video couldn't be retrieved, else: Dict: {"path": local path, "url": remote url, "name": camera name, "date": date as string}
+    """
+    from selenium import webdriver
+    from selenium.common.exceptions import WebDriverException, NoSuchElementException
+    from pyvirtualdisplay import Display
 
-        if not os.path.exists(out_dir):
-            os.makedirs(out_dir)
-        out_path = os.path.join(out_dir, os.path.basename(url) + ".mp4")
-        with Display():
-            # create virtual display so that selenium can run in terminal
-            try:
-                driver = webdriver.Firefox()
-            except WebDriverException:
-                driver = webdriver.Chrome()
-            try:
-                driver.get(url)
-                with open("source.txt", "wb") as f:
-                    f.write(driver.page_source.encode("utf-8"))
-                video_elem = driver.find_element_by_id("recordedVideo")
-                source_elem = video_elem.find_element_by_tag_name("source")
-                video_url = source_elem.get_attribute("src")
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+    out_path = os.path.join(out_dir, os.path.basename(url) + ".mp4")
+    with Display():
+        # create virtual display so that selenium can run in terminal
+        try:
+            driver = webdriver.Firefox()
+        except WebDriverException:
+            driver = webdriver.Chrome()
+        try:
+            driver.get(url)
+            with open("source.txt", "wb") as f:
+                f.write(driver.page_source.encode("utf-8"))
+            video_elem = driver.find_element_by_id("recordedVideo")
+            source_elem = video_elem.find_element_by_tag_name("source")
+            video_url = source_elem.get_attribute("src")
 
-                side_elem = driver.find_element_by_class_name("shared-media-head")
-                div0, div1 = side_elem.find_elements_by_tag_name("div")
-                camera_name = div0.get_attribute("innerHTML")
-                date = div1.get_attribute("innerHTML")
+            side_elem = driver.find_element_by_class_name("shared-media-head")
+            div0, div1 = side_elem.find_elements_by_tag_name("div")
+            camera_name = div0.get_attribute("innerHTML")
+            date = div1.get_attribute("innerHTML")
 
-            except NoSuchElementException:
-                driver.quit()
-                return None
-            print("saving video from", video_url, "at", out_path)
+        except NoSuchElementException:
             driver.quit()
-        req = requests.get(video_url, stream=True)
-        with open(out_path, "wb") as f:
-            assert req.status_code == 200
-            shutil.copyfileobj(req.raw, f)
-        return {"path": out_path, "url": video_url, "name": camera_name, "date": date}
+            return None
+        print("saving video from", video_url, "at", out_path)
+        driver.quit()
+    req = requests.get(video_url, stream=True)
+    with open(out_path, "wb") as f:
+        assert req.status_code == 200
+        shutil.copyfileobj(req.raw, f)
+    return {"path": out_path, "url": video_url, "name": camera_name, "date": date}
 
 
 if __name__ == "__main__":
