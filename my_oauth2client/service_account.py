@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""oauth2client Service account credentials class."""
+"""my_oauth2client Service account credentials class."""
 
 import base64
 import copy
@@ -20,11 +20,11 @@ import datetime
 import json
 import time
 
-import oauth2client
-from oauth2client import _helpers
-from oauth2client import client
-from oauth2client import crypt
-from oauth2client import transport
+import my_oauth2client
+from my_oauth2client import _helpers
+from my_oauth2client import client
+from my_oauth2client import crypt
+from my_oauth2client import transport
 
 
 _PASSWORD_DEFAULT = 'notasecret'
@@ -99,8 +99,8 @@ class ServiceAccountCredentials(client.AssertionCredentials):
                  private_key_id=None,
                  client_id=None,
                  user_agent=None,
-                 token_uri=oauth2client.GOOGLE_TOKEN_URI,
-                 revoke_uri=oauth2client.GOOGLE_REVOKE_URI,
+                 token_uri=my_oauth2client.GOOGLE_TOKEN_URI,
+                 revoke_uri=my_oauth2client.GOOGLE_REVOKE_URI,
                  **kwargs):
 
         super(ServiceAccountCredentials, self).__init__(
@@ -177,10 +177,10 @@ class ServiceAccountCredentials(client.AssertionCredentials):
         client_id = keyfile_dict['client_id']
         if not token_uri:
             token_uri = keyfile_dict.get('token_uri',
-                                         oauth2client.GOOGLE_TOKEN_URI)
+                                         my_oauth2client.GOOGLE_TOKEN_URI)
         if not revoke_uri:
             revoke_uri = keyfile_dict.get('revoke_uri',
-                                          oauth2client.GOOGLE_REVOKE_URI)
+                                          my_oauth2client.GOOGLE_REVOKE_URI)
 
         signer = crypt.Signer.from_string(private_key_pkcs8_pem)
         credentials = cls(service_account_email, signer, scopes=scopes,
@@ -256,8 +256,8 @@ class ServiceAccountCredentials(client.AssertionCredentials):
     def _from_p12_keyfile_contents(cls, service_account_email,
                                    private_key_pkcs12,
                                    private_key_password=None, scopes='',
-                                   token_uri=oauth2client.GOOGLE_TOKEN_URI,
-                                   revoke_uri=oauth2client.GOOGLE_REVOKE_URI):
+                                   token_uri=my_oauth2client.GOOGLE_TOKEN_URI,
+                                   revoke_uri=my_oauth2client.GOOGLE_REVOKE_URI):
         """Factory constructor from JSON keyfile.
 
         Args:
@@ -298,8 +298,8 @@ class ServiceAccountCredentials(client.AssertionCredentials):
     @classmethod
     def from_p12_keyfile(cls, service_account_email, filename,
                          private_key_password=None, scopes='',
-                         token_uri=oauth2client.GOOGLE_TOKEN_URI,
-                         revoke_uri=oauth2client.GOOGLE_REVOKE_URI):
+                         token_uri=my_oauth2client.GOOGLE_TOKEN_URI,
+                         revoke_uri=my_oauth2client.GOOGLE_REVOKE_URI):
 
         """Factory constructor from JSON keyfile.
 
@@ -336,8 +336,8 @@ class ServiceAccountCredentials(client.AssertionCredentials):
     @classmethod
     def from_p12_keyfile_buffer(cls, service_account_email, file_buffer,
                                 private_key_password=None, scopes='',
-                                token_uri=oauth2client.GOOGLE_TOKEN_URI,
-                                revoke_uri=oauth2client.GOOGLE_REVOKE_URI):
+                                token_uri=my_oauth2client.GOOGLE_TOKEN_URI,
+                                revoke_uri=my_oauth2client.GOOGLE_REVOKE_URI):
         """Factory constructor from JSON keyfile.
 
         Args:
@@ -388,7 +388,7 @@ class ServiceAccountCredentials(client.AssertionCredentials):
         """Cryptographically sign a blob (of bytes).
 
         Implements abstract method
-        :meth:`oauth2client.client.AssertionCredentials.sign_blob`.
+        :meth:`my_oauth2client.client.AssertionCredentials.sign_blob`.
 
         Args:
             blob: bytes, Message to be signed.
@@ -566,8 +566,8 @@ class _JWTAccessCredentials(ServiceAccountCredentials):
                  private_key_id=None,
                  client_id=None,
                  user_agent=None,
-                 token_uri=oauth2client.GOOGLE_TOKEN_URI,
-                 revoke_uri=oauth2client.GOOGLE_REVOKE_URI,
+                 token_uri=my_oauth2client.GOOGLE_TOKEN_URI,
+                 revoke_uri=my_oauth2client.GOOGLE_REVOKE_URI,
                  additional_claims=None):
         if additional_claims is None:
             additional_claims = {}
@@ -628,8 +628,8 @@ class _JWTAccessCredentials(ServiceAccountCredentials):
         # JWTAccessCredentials are unscoped by definition
         return True
 
-    def create_scoped(self, scopes, token_uri=oauth2client.GOOGLE_TOKEN_URI,
-                      revoke_uri=oauth2client.GOOGLE_REVOKE_URI):
+    def create_scoped(self, scopes, token_uri=my_oauth2client.GOOGLE_TOKEN_URI,
+                      revoke_uri=my_oauth2client.GOOGLE_REVOKE_URI):
         # Returns an OAuth2 credentials with the given scope
         result = ServiceAccountCredentials(self._service_account_email,
                                            self._signer,
