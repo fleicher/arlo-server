@@ -212,8 +212,11 @@ def getFrames(path, interval=1):
         print("capturing video:", path)
         cap = cv2.VideoCapture(path)
         assert cap.isOpened(), "Couldn't open capture for " + path
-        frames_count = cap.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT)
-        fps = int(round(cap.get(cv2.cv.CV_CAP_PROP_FPS), 0))
+        frames_count = int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT))
+        try:
+            fps = int(round(cap.get(cv2.cv.CV_CAP_PROP_FPS), 0))
+        except ValueError:  # could not retrieve fps
+            fps = 24
 
         def getFrame(frame_id):
             success, f = cap.read(frame_id)
