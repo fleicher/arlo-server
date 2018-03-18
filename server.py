@@ -37,7 +37,12 @@ def main():
         start = time.time()
         today = date.today().strftime("%Y%m%d")
         yesterday = (date.today()-timedelta(days=7)).strftime("%Y%m%d")
-        library = arlo.GetLibrary(yesterday, today)
+        try:
+            library = arlo.GetLibrary(yesterday, today)
+        except requests.exceptions.HTTPError:
+            print("somebody else logged in, stopping camera for 5 min")
+            time.sleep(300)
+            continue
         print("library request took:", time.time()-start)
 
         for recording in library:
@@ -143,6 +148,7 @@ def notify_client(video_info, suspicious_frame, server_url=None):
     impath = os.path.join(imdir, imname)
     if not os.path.exists(imdir):
         os.makedirs(imdir)
+    print("saving to", impath)
     cv2.imwrite(impath, suspicious_frame)
 
     if server_url:
