@@ -46,7 +46,7 @@ def main():
         print("library request took:", time.time()-start, "has:", len(library))
 
         for recording in library:
-            id = recording['localCreatedDate']
+            id = str(recording['localCreatedDate'])
             if id in known_ids:
                 continue
             if len(known_ids) > 100:
