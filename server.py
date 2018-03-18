@@ -65,7 +65,7 @@ def main():
             frames = getFrames(path)
             os.remove(path)
             suspicious_frame = detect.hogDetector(frames)
-            names = {"48B45972DBDBD": "Freisitz", "48B45A7BEAE01": "Eingang", "48B45975D51D8": "Rücksitz",
+            names = {"48B45972DBDBD": "Freisitz", "48B45A7BEAE01": "Eingang", "48B45975D51D8": "Ruecksitz",
                 "48B45A75EC0D3": "Pool", "48B45A7MEA79E": "Terasse"}
             if suspicious_frame is not None:
                 video_info = {"path": path, "url": recording['presignedContentUrl'],
