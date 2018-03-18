@@ -94,10 +94,15 @@ def getSuspiciousFrames(frames, threshold=20, gui=False):
     return suspicous_frames
 
 
-def hogDetector(frames_list, threshold=20, gui=False):
+def hogDetector(frames_list, overlap_threshold=0.65, gui=False):
+    """
+    :param frames_list:
+    :param overlap_threshold: parameter for non maximum supression
+    :param gui: visual output of detected image
+    :return: the first detected frame (with bounding boxes inside)
+    """
     hog = cv2.HOGDescriptor()
     hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
-    suspicious = []
 
     # loop over the image paths
     for no, image in enumerate(frames_list):
@@ -105,41 +110,42 @@ def hogDetector(frames_list, threshold=20, gui=False):
         # and (2) improve detection accuracy
         # image = frames[frame_id, :, :].reshape(height, width)
         image = resize(image, width=min(400, image.shape[1]))
-        orig = image.copy()
 
         # detect people in the image
         (rects, weights) = hog.detectMultiScale(image, winStride=(4, 4),
                                             padding=(8, 8), scale=1.05)
 
         # draw the original bounding boxes
-        for (x, y, w, h) in rects:
-            cv2.rectangle(orig, (x, y), (x + w, y + h), (0, 0, 255), 2)
+        # orig = image.copy()
+        # for (x, y, w, h) in rects:
+        #     cv2.rectangle(orig, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
         # apply non-maxima suppression to the bounding boxes using a
         # fairly large overlap threshold to try to maintain overlapping
         # boxes that are still people
         rects = np.array([[x, y, x + w, y + h] for (x, y, w, h) in rects])
         # pick = imutils.object_detection.non_max_suppression(rects, probs=None, overlapThresh=0.65)
-        pick = non_max_suppression_slow(rects, overlapThresh=0.65)
+        pick = non_max_suppression_slow(rects, overlapThresh=overlap_threshold)
+        if len(pick) == 0:
+            continue
 
-        if len(pick) > 0:
-            suspicious.append(no)
+        # draw the final bounding boxes
+        for (xA, yA, xB, yB) in pick:
+            cv2.rectangle(image, (xA, yA), (xB, yB), (0, 255, 0), 2)
+
         if gui:
             import matplotlib.pyplot as plt
-            # draw the final bounding boxes
-            for (xA, yA, xB, yB) in pick:
-                cv2.rectangle(image, (xA, yA), (xB, yB), (0, 255, 0), 2)
 
             # show some information on the number of bounding boxes
             print("[INFO] {}: {} original boxes, {} after suppression".format(
                 "picture", len(rects), len(pick)))
 
             # show the output images
-            plt.imshow(orig)
-            plt.show()
             plt.imshow(image)
             plt.show()
-    return suspicious
+
+        return image
+    return None
 
 
 def non_max_suppression_slow(boxes, overlapThresh):
@@ -205,6 +211,7 @@ def non_max_suppression_slow(boxes, overlapThresh):
 
     # return only the bounding boxes that were picked
     return boxes[pick]
+
 
 def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
     # initialize the dimensions of the image to be resized and
