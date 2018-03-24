@@ -44,6 +44,8 @@ def main():
             time.sleep(300)
             continue
         print("library request took:", time.time()-start, "has:", len(library))
+        with open("lastactive.txt", "w") as f:
+            f.write(str(start))
 
         for recording in library:
             id = str(recording['localCreatedDate'])
@@ -64,7 +66,7 @@ def main():
 
             frames = getFrames(path)
             os.remove(path)
-            suspicious_frame = detect.hogDetector(frames)
+            suspicious_frame = detect.hogDetector(frames, gui=True)
             names = {"48B45972DBDBD": "Freisitz", "48B45A7BEAE01": "Eingang", "48B45975D51D8": "Ruecksitz",
                 "48B45A75EC0D3": "Pool", "48B45A7MEA79E": "Terasse"}
             if suspicious_frame is not None:

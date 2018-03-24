@@ -9,7 +9,7 @@ PASSWORD = 'FCBayern1900'
 
 try:
     # Instantiating the Arlo object automatically calls Login(), which returns an oAuth token that gets cached.
-    # Subsequent successful calls to login will update the oAuth token.
+    # Subsequent successful calls to login will add_reward the oAuth token.
     arlo = Arlo(USERNAME, PASSWORD)
     # At this point you're logged into Arlo.
 
