@@ -9,7 +9,7 @@ import requests
 import cv2
 import numpy as np
 import detect
-from oauth2client.service_account import ServiceAccountCredentials
+from my_oauth2client.service_account import ServiceAccountCredentials
 
 # path to the firebase private key data used to authenticate at Google server
 # TODO(developer): adjust this path after you have downloaded the service account json file from here
