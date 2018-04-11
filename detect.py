@@ -21,7 +21,8 @@ def getSuspiciousFrames(frames, threshold=20, gui=False):
 
     suspicous_frames = []
     for cur_frame_id in range(len(frames) - 1):
-        a, b = cv2.cvtColor(frames[cur_frame_id], cv2.COLOR_BGR2GRAY), cv2.cvtColor(frames[cur_frame_id+1], cv2.COLOR_BGR2GRAY)
+        a, b = cv2.cvtColor(frames[cur_frame_id], cv2.COLOR_BGR2GRAY), cv2.cvtColor(frames[cur_frame_id+1],
+                                                                                    cv2.COLOR_BGR2GRAY)
         frame_pixel_difference = b - a
 
         mean_illumination_change = np.mean(np.mean(frame_pixel_difference))
@@ -112,8 +113,7 @@ def hogDetector(frames_list, overlap_threshold=0.65, gui=False):
         image = resize(image, width=min(400, image.shape[1]))
 
         # detect people in the image
-        (rects, weights) = hog.detectMultiScale(image, winStride=(4, 4),
-                                            padding=(8, 8), scale=1.05)
+        (rects, weights) = hog.detectMultiScale(image, winStride=(4, 4), padding=(8, 8), scale=1.05)
 
         # draw the original bounding boxes
         # orig = image.copy()
@@ -216,7 +216,6 @@ def non_max_suppression_slow(boxes, overlapThresh):
 def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
     # initialize the dimensions of the image to be resized and
     # grab the image size
-    dim = None
     (h, w) = image.shape[:2]
 
     # if both the width and height are None, then return the

@@ -3,12 +3,14 @@ from __future__ import print_function
 from __future__ import division
 
 import argparse
+import random
 import time
 import os
 import requests
 import cv2
 import numpy as np
 import detect
+import fasterrcnn
 from my_oauth2client.service_account import ServiceAccountCredentials
 
 # path to the firebase private key data used to authenticate at Google server
@@ -25,6 +27,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("user", help="username")
     parser.add_argument("pw")
+    parser.add_argument("--gui", action="store_true")
     parser.add_argument("--server", help="store image files locally, otherwise provide a method for image upload")
     parser.add_argument("--interval", help="timeinterval in seconds between email server is checked", default=5)
     parser.add_argument("--threshold", help="threshold when a change of a pixel grey value is consided a 'change'",
@@ -48,17 +51,17 @@ def main():
             f.write(str(start))
 
         for recording in library:
-            id = str(recording['localCreatedDate'])
-            if id in known_ids:
+            video_id = str(recording['localCreatedDate'])
+            if video_id in known_ids:
                 continue
             if len(known_ids) > 100:
                 known_ids.pop(0)
-            known_ids.append(id)
+            known_ids.append(video_id)
 
             stream = arlo.StreamRecording(recording['presignedContentUrl'])
             if not os.path.exists("videos"):
                 os.makedirs("videos/")
-            path = 'videos/' + id + ".mp4"
+            path = 'videos/' + video_id + ".mp4"
             with open(path, 'wb') as f:
                 for chunk in stream:
                     f.write(chunk)
@@ -68,9 +71,10 @@ def main():
 
             frames = getFrames(path)
             os.remove(path)
-            suspicious_frame = detect.hogDetector(frames, gui=True)
+            # suspicious_frame = detect.hogDetector(frames, gui=args.gui)
+            suspicious_frame = fasterrcnn.check_images(frames, gui=args.gui)
             names = {"48B45972DBDBD": "Freisitz", "48B45A7BEAE01": "Eingang", "48B45975D51D8": "Ruecksitz",
-                "48B45A75EC0D3": "Pool", "48B45A7MEA79E": "Terasse"}
+                     "48B45A75EC0D3": "Pool", "48B45A7MEA79E": "Terasse"}
             if suspicious_frame is not None:
                 video_info = {"path": path, "url": recording['presignedContentUrl'],
                               "name": names[recording["deviceId"]], "date": str(recording['createdDate'])}
@@ -149,7 +153,7 @@ def notify_client(video_info, suspicious_frame, server_url=None):
         "Content-Type": "application/json",
         "Authorization": "Bearer " + _get_access_token()
     }
-    imdir, imname = "images", "last.jpg"
+    imdir, imname = "images", str(random.randint(1000, 9999)) + "last.jpg"
     impath = os.path.join(imdir, imname)
     if not os.path.exists(imdir):
         os.makedirs(imdir)
@@ -160,7 +164,7 @@ def notify_client(video_info, suspicious_frame, server_url=None):
         assert server_url[:4] == "http", "provided server url must include protocol"
         if server_url[-1] != "/":
             server_url += "/"
-        video_info["image"] = server_url  + imdir + "/" + imname
+        video_info["image"] = server_url + imdir + "/" + imname
     else:
         import cloudinary.uploader
         import cloudinary

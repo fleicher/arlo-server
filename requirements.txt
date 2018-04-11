@@ -1,5 +1,5 @@
 selenium
 requests
-cv2
+opencv-python
 scipy
 numpy
