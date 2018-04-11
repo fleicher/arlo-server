@@ -56,6 +56,8 @@ def main():
             known_ids.append(id)
 
             stream = arlo.StreamRecording(recording['presignedContentUrl'])
+            if not os.path.exists("videos"):
+                os.makedirs("videos/")
             path = 'videos/' + id + ".mp4"
             with open(path, 'wb') as f:
                 for chunk in stream:
