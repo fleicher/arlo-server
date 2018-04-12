@@ -27,8 +27,9 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("user", help="username")
     parser.add_argument("pw")
+    parser.add_argument("server", help="store image files locally")
     parser.add_argument("--gui", action="store_true")
-    parser.add_argument("--server", help="store image files locally, otherwise provide a method for image upload")
+
     parser.add_argument("--interval", help="timeinterval in seconds between email server is checked", default=5)
     parser.add_argument("--threshold", help="threshold when a change of a pixel grey value is consided a 'change'",
                         default=20)
@@ -44,6 +45,7 @@ def main():
 
         analyze_frames_and_notify(frames, "http://dummy", recording, args.server, gui=args.gui)
         return
+    assert args.server[:4] == "http", "provided server url {} must include protocol".format(args.server)
 
     while True:
         start = time.time()
@@ -166,23 +168,17 @@ def notify_client(video_info, suspicious_frame, server_url=None):
         "Content-Type": "application/json",
         "Authorization": "Bearer " + _get_access_token()
     }
-    imdir, imname = "images", str(random.randint(1000, 9999)) + "last.jpg"
+    imdir, imname = "images", str(random.randint(0, 10)) + "last.jpg"
     impath = os.path.join(imdir, imname)
     if not os.path.exists(imdir):
         os.makedirs(imdir)
-    print("saving to", impath)
     cv2.imwrite(impath, suspicious_frame)
 
-    if server_url:
-        assert server_url[:4] == "http", "provided server url must include protocol"
-        if server_url[-1] != "/":
-            server_url += "/"
-        video_info["image"] = server_url + "/" + imname
-    else:
-        import cloudinary.uploader
-        import cloudinary
-        response = cloudinary.uploader.unsigned_upload(impath, "upload_identifier1", cloud_name="insert_cloudname_here")
-        video_info["image"] = response["url"]
+    assert server_url[:4] == "http", "provided server url must include protocol"
+    if server_url[-1] != "/":
+        server_url += "/"
+    video_info["image"] = server_url + imname
+    print("saving to", impath, "on server", video_info["image"])
     json = {
         "message": {
             "topic": "news",
