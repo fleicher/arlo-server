@@ -95,5 +95,6 @@ def check_images(frames, gui=False):
             plt.show()
 
         if found_person:
+            print("found a person on frame", n)
             return draw
     return None

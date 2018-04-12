@@ -33,9 +33,18 @@ def main():
     parser.add_argument("--threshold", help="threshold when a change of a pixel grey value is consided a 'change'",
                         default=20)
     parser.add_argument("--verbose", help="give more output", action="store_true")
+    parser.add_argument("--test", help="image this is returned instead of a server request")
     args = parser.parse_args()
     arlo = Arlo(args.user, args.pw)
     known_ids = []
+    if args.test:
+        print("Test", args.test, "from cwd", os.getcwd(), "exists:", os.path.exists(args.test))
+        frames = [cv2.imread(args.test)]
+        recording = {"presignedContentUrl": "", "deviceId": "48B45A7BEAE01", "createdDate": "heute",}
+
+        analyze_frames_and_notify(frames, "http://dummy", recording, args.server, gui=args.gui)
+        return
+
     while True:
         start = time.time()
         today = date.today().strftime("%Y%m%d")
@@ -70,17 +79,21 @@ def main():
             print('Downloaded', path, "from Device", recording["deviceId"])
 
             frames = getFrames(path)
+            analyze_frames_and_notify(frames, path, recording, args.server, args.gui)
             os.remove(path)
-            # suspicious_frame = detect.hogDetector(frames, gui=args.gui)
-            suspicious_frame = fasterrcnn.check_images(frames, gui=args.gui)
-            names = {"48B45972DBDBD": "Freisitz", "48B45A7BEAE01": "Eingang", "48B45975D51D8": "Ruecksitz",
-                     "48B45A75EC0D3": "Pool", "48B45A7MEA79E": "Terasse"}
-            if suspicious_frame is not None:
-                video_info = {"path": path, "url": recording['presignedContentUrl'],
-                              "name": names[recording["deviceId"]], "date": str(recording['createdDate'])}
-                status, txt = notify_client(video_info, suspicious_frame, args.server)
-                assert status == 200, "couldn't transmit picture. Error: " + str(txt)
         time.sleep(10)
+
+
+def analyze_frames_and_notify(frames, path, recording, server, gui=False):
+    # suspicious_frame = detect.hogDetector(frames, gui=args.gui)
+    suspicious_frame = fasterrcnn.check_images(frames, gui=gui)
+    names = {"48B45972DBDBD": "Freisitz", "48B45A7BEAE01": "Eingang", "48B45975D51D8": "Ruecksitz",
+             "48B45A75EC0D3": "Pool", "48B45A7MEA79E": "Terasse"}
+    if suspicious_frame is not None:
+        video_info = {"path": path, "url": recording['presignedContentUrl'],
+                      "name": names[recording["deviceId"]], "date": str(recording['createdDate'])}
+        status, txt = notify_client(video_info, suspicious_frame, server)
+        assert status == 200, "couldn't transmit picture. Error: " + str(txt)
 
 
 def getFrames(path, interval=1):
@@ -93,7 +106,7 @@ def getFrames(path, interval=1):
 
     # known bug in OpenCV 3, can't do video caputure from file
     # https://github.com/ContinuumIO/anaconda-issues/issues/121
-    if cv2.__version__.startswith("2."):
+    if True or cv2.__version__.startswith("2."):
         print("capturing video:", path)
         cap = cv2.VideoCapture(path)
         assert cap.isOpened(), "Couldn't open capture for " + path
@@ -164,7 +177,7 @@ def notify_client(video_info, suspicious_frame, server_url=None):
         assert server_url[:4] == "http", "provided server url must include protocol"
         if server_url[-1] != "/":
             server_url += "/"
-        video_info["image"] = server_url + imdir + "/" + imname
+        video_info["image"] = server_url + "/" + imname
     else:
         import cloudinary.uploader
         import cloudinary
