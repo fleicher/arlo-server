@@ -106,7 +106,7 @@ def getFrames(path, interval=1):
 
     # known bug in OpenCV 3, can't do video caputure from file
     # https://github.com/ContinuumIO/anaconda-issues/issues/121
-    if True or cv2.__version__.startswith("2."):
+    if cv2.__version__.startswith("2."):
         print("capturing video:", path)
         cap = cv2.VideoCapture(path)
         assert cap.isOpened(), "Couldn't open capture for " + path
