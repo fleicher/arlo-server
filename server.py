@@ -29,6 +29,7 @@ with open("keys.json") as f:
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--silent", action="store_true")
     parser.add_argument("--gui", action="store_true")
 
     parser.add_argument("--interval", help="timeinterval in seconds between email server is checked", default=5)
@@ -87,7 +88,7 @@ def main():
             # suspicious_frame = fasterrcnn.check_images(frames)
             suspicious_frame = azure.check_images(frames)
 
-            if suspicious_frame:
+            if suspicious_frame and not args.silent:
                 status, txt = notify_client(recording, suspicious_frame, path=path)
                 assert status == 200, "couldn't transmit picture. Error: " + str(txt)
 
