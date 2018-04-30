@@ -15,7 +15,7 @@ from datetime import timedelta, date
 # import detect
 # import fasterrcnn
 import azure
-from my_oauth2client.service_account import ServiceAccountCredentials
+from oauth2client.service_account import ServiceAccountCredentials
 
 # path to the firebase private key data used to authenticate at Google server
 # Firebase Console -> 3 dots next to relevant project and click on settings
@@ -89,9 +89,9 @@ def main():
             suspicious_frame = azure.check_images(frames)
             print(args.silent, "suspicious frame", suspicious_frame)
             if suspicious_frame is not None and not args.silent:
-                status, txt = notify_client(recording, suspicious_frame, path=path)
+                status, txt = notify_client(create_video_info(recording, suspicious_frame, path=path))
                 assert status == 200, "couldn't transmit picture. Error: " + str(txt)
-
+                print("notified client", status, ":", txt)
             os.remove(path)
         time.sleep(10)
 
@@ -140,7 +140,7 @@ def getFrames(path, interval=1):
     return [getFrame(n * rate) for n in range(no_frames)]
 
 
-def notify_client(recording, suspicious_frame, path):
+def create_video_info(recording, suspicious_frame, path):
     """ send out a push notifications through firebase
 
     """
@@ -149,6 +149,19 @@ def notify_client(recording, suspicious_frame, path):
              "48B45A75EC0D3": "Pool", "48B45A7MEA79E": "Terasse"}
     video_info = {"path": path, "url": recording['presignedContentUrl'],
                   "name": names[recording["deviceId"]], "date": str(recording['createdDate'])}
+
+    imdir, imname = "../static/arlo/app_images", str(random.randint(0, 10)) + "last.jpg"
+    impath = os.path.join(imdir, imname)
+    if not os.path.exists(imdir):
+        os.makedirs(imdir)
+    cv2.imwrite(impath, suspicious_frame)
+
+    video_info["image"] = j["static_url"] + "/arlo/app_images/" + imname
+    print("saving to", impath, "on server", video_info["image"])
+    return video_info
+
+
+def notify_client(video_info):
 
     def _get_access_token():
         """Retrieve a valid access token that can be used to authorize requests.
@@ -166,14 +179,6 @@ def notify_client(recording, suspicious_frame, path):
         "Content-Type": "application/json",
         "Authorization": "Bearer " + _get_access_token()
     }
-    imdir, imname = "../static/arlo/app_images", str(random.randint(0, 10)) + "last.jpg"
-    impath = os.path.join(imdir, imname)
-    if not os.path.exists(imdir):
-        os.makedirs(imdir)
-    cv2.imwrite(impath, suspicious_frame)
-
-    video_info["image"] = j["static_url"] + "/arlo/app_images/" + imname
-    print("saving to", impath, "on server", video_info["image"])
     json_ = {
         "message": {
             "topic": "news",
