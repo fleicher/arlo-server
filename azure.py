@@ -32,11 +32,18 @@ def check_images(frames):
         headers = {'Ocp-Apim-Subscription-Key': subscription_key}
         params = {'visualFeatures': 'Tags'}  # 'Categories,Description,Color'}
         data = {'url': image_url}
-        response = requests.post(vision_analyze_url, headers=headers, params=params, json=data)
-        print(response.content)
-        response.raise_for_status()
+        while True:
+            response = requests.post(vision_analyze_url, headers=headers, params=params, json=data)
+            print(response.content)
+            if response.status_code == 429:
+                print("exceeded Azure Limit, sleep for 60s")
+                time.sleep(60)
+                continue
+            break
+
         analysis = response.json()
-        print("got:", analysis)
+        response.raise_for_status()
+        # print("got:", analysis)
         print("processing time: ", time.time() - start)
 
         for tag in analysis["tags"]:
