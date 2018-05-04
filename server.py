@@ -60,7 +60,7 @@ def main():
             time.sleep(300)
             continue
         print("library request took:", time.time()-start, "has:", len(library))
-        with open("lastactive.txt", "w") as f_:
+        with open("../static/arlo/lastactive.txt", "w") as f_:
             f_.write(str(start))
 
         for recording in library:
@@ -87,7 +87,7 @@ def main():
             # suspicious_frame = detect.hogDetector(frames, gui=args.gui)
             # suspicious_frame = fasterrcnn.check_images(frames)
             suspicious_frame = azure.check_images(frames)
-            print(args.silent, "suspicious frame", suspicious_frame)
+            # print(args.silent, "suspicious frame", suspicious_frame)
             if suspicious_frame is not None and not args.silent:
                 status, txt = notify_client(create_video_info(recording, suspicious_frame, path=path))
                 assert status == 200, "couldn't transmit picture. Error: " + str(txt)
